@@ -269,92 +269,185 @@
 
   .control-panel {
     width: 520px;
-    height: 80px;
-    background: linear-gradient(180deg, #1c1c24 0%, #111115 100%);
+    height: 100px;
+    background:
+      linear-gradient(180deg, #22222c 0%, #18181f 40%, #121217 100%);
     border-left: 3px solid #333;
     border-right: 3px solid #333;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 50px;
-  }
-
-  .joystick {
-    width: 50px; height: 50px;
-    background: radial-gradient(circle at 40% 35%, #555, #222);
-    border-radius: 50%;
-    border: 3px solid #444;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 -2px 4px rgba(0,0,0,0.3);
+    gap: 60px;
     position: relative;
+    overflow: hidden;
   }
-  .joystick::after {
+  .control-panel::before {
     content: '';
     position: absolute;
-    top: 50%; left: 50%;
-    width: 14px; height: 14px;
-    background: radial-gradient(circle at 40% 35%, #777, #444);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 1px solid #555;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 120px 80px at 30% 50%, rgba(255,255,255,0.03) 0%, transparent 100%),
+      radial-gradient(ellipse 120px 80px at 70% 50%, rgba(255,255,255,0.02) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .control-panel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.08) 50%, transparent 90%);
   }
 
-  .buttons { display: flex; gap: 14px; }
-  .btn {
+  .joy-mount {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .joy-plate {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at 50% 45%, #2a2a32, #1a1a20);
+    border-radius: 12px;
+    border: 2px solid #3a3a42;
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .joy-boot {
     width: 36px; height: 36px;
+    background: radial-gradient(circle at 50% 50%, #1a1a1a, #0a0a0a);
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+    border: 2px solid #333;
+    box-shadow: 0 0 6px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .btn.red { background: radial-gradient(circle at 40% 35%, #ff4444, #aa0000); }
-  .btn.blue { background: radial-gradient(circle at 40% 35%, #4488ff, #0044aa); }
-  .btn.yellow { background: radial-gradient(circle at 40% 35%, #ffcc00, #aa8800); }
+  .joy-stick {
+    width: 20px; height: 20px;
+    background: radial-gradient(circle at 38% 32%, #666, #2a2a2a);
+    border-radius: 50%;
+    border: 1px solid #555;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.15);
+    position: relative;
+  }
+  .joy-stick::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 4px;
+    width: 6px; height: 4px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.2), transparent);
+    border-radius: 50%;
+  }
 
-  .coin-panel {
+  .btn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .btn-label {
+    font-size: 5px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.12);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 1px 3px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 6px;
+    width: 12px; height: 6px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.2), transparent);
+    border-radius: 50%;
+  }
+  .btn.red { background: radial-gradient(circle at 40% 32%, #ff5555, #cc1111, #880000); }
+  .btn.blue { background: radial-gradient(circle at 40% 32%, #5599ff, #1155cc, #003388); }
+  .btn.yellow { background: radial-gradient(circle at 40% 32%, #ffdd33, #ccaa00, #886600); }
+  .btn-start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-left: 16px;
+  }
+  .btn-start .btn-sm {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 32%, #f5f5f5, #aaa, #777);
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+  .btn-start .btn-label { color: rgba(255,255,255,0.5); font-size: 5px; }
+
+  .lower-panel {
     width: 520px;
-    height: 50px;
-    background: linear-gradient(180deg, #111115 0%, #0d0d10 100%);
+    background: linear-gradient(180deg, #111115 0%, #0c0c0f 100%);
     border-left: 3px solid #333;
     border-right: 3px solid #333;
     border-bottom: 3px solid #333;
     border-radius: 0 0 8px 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 20px;
-  }
-
-  .coin-slot {
-    width: 40px; height: 22px;
-    background: #0a0a0a;
-    border-radius: 3px;
-    border: 2px solid #444;
+    padding: 10px 0 12px;
+    gap: 8px;
     position: relative;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
   }
-  .coin-slot::after {
+  .lower-panel::before {
     content: '';
     position: absolute;
-    top: 50%; left: 50%;
-    width: 24px; height: 4px;
-    background: #222;
-    border-radius: 2px;
-    transform: translate(-50%, -50%);
-    border: 1px solid #333;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
   }
 
-  .coin-text {
-    font-size: 7px;
-    color: #ff6600;
-    text-shadow: 0 0 8px rgba(255,100,0,0.5);
+  .coin-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .coin-slot {
+    width: 48px; height: 8px;
+    background: #050505;
+    border-radius: 4px;
+    border: 2px solid #3a3a3a;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.04);
+    position: relative;
+  }
+  .coin-slot::before {
+    content: 'COIN';
+    position: absolute;
+    top: -14px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 5px;
+    color: rgba(255,255,255,0.25);
     letter-spacing: 2px;
+    white-space: nowrap;
+  }
+  .coin-text {
+    font-size: 8px;
+    color: #ff6600;
+    text-shadow: 0 0 10px rgba(255,100,0,0.6), 0 0 20px rgba(255,100,0,0.2);
+    letter-spacing: 3px;
     animation: coin-blink 1.5s ease-in-out infinite;
   }
 
   .hint {
-    position: absolute;
-    bottom: 10px;
-    font-size: 8px;
-    color: rgba(255,255,255,0.25);
+    font-size: 7px;
+    color: rgba(255,255,255,0.3);
     letter-spacing: 1px;
     z-index: 20;
   }
@@ -601,19 +694,29 @@
       </div>
     </div>
     <div class="control-panel">
-      <div class="joystick"></div>
-      <div class="buttons">
-        <div class="btn red"></div>
-        <div class="btn blue"></div>
-        <div class="btn yellow"></div>
+      <div class="joy-mount">
+        <div class="joy-plate">
+          <div class="joy-boot"><div class="joy-stick"></div></div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <div class="btn-col"><div class="btn red"></div><span class="btn-label">A</span></div>
+        <div class="btn-col"><div class="btn blue"></div><span class="btn-label">B</span></div>
+        <div class="btn-col"><div class="btn yellow"></div><span class="btn-label">C</span></div>
+      </div>
+      <div class="btn-start">
+        <div class="btn-sm"></div>
+        <span class="btn-label">START</span>
       </div>
     </div>
-    <div class="coin-panel">
-      <div class="coin-text">INSERT COIN</div>
-      <div class="coin-slot"></div>
+    <div class="lower-panel">
+      <div class="coin-row">
+        <div class="coin-text">INSERT COIN</div>
+        <div class="coin-slot"></div>
+      </div>
+      <div class="hint">Arrow keys / WASD to move -- Space to start</div>
     </div>
   </div>
-  <div class="hint">Arrow keys / WASD to move -- Space to start</div>
 </div>
 
 <script>
