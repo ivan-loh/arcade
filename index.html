@@ -684,14 +684,27 @@ wallCanvas.width = canvas.width;
 wallCanvas.height = canvas.height;
 const wallCtx = wallCanvas.getContext('2d');
 
-let grid, totalDots, dotsEaten, score, best = 0, lives, level;
-let pac, ghosts, frightTimer, frightDuration, gameState;
-let mouthAngle = 0, wallsDirty = true, paused = false;
+const dotCanvas = document.createElement('canvas');
+dotCanvas.width = canvas.width;
+dotCanvas.height = canvas.height;
+const dotCtx = dotCanvas.getContext('2d');
 
-const PAC_TILES_PER_SEC = 8;
-const GHOST_TILES_PER_SEC = 7;
-const GHOST_FRIGHT_TPS = 4.5;
-const GHOST_EATEN_TPS = 14;
+let grid, totalDots, dotsEaten, score, best = 0, lives, level;
+let pac, ghosts, frightTimer, gameState;
+let mouthAngle = 0, wallsDirty = true, dotsDirty = true, paused = false, pacPause = 0;
+
+const BASE_TPS = 7.5;
+const GHOST_EATEN_TPS = BASE_TPS * 2;
+const SPEED_TABLE = [
+  { pn:.80, pd:.71, gn:.75, gf:.50, gt:.40, ft:6 },
+  { pn:.90, pd:.79, gn:.85, gf:.55, gt:.45, ft:5 },
+  { pn:.90, pd:.79, gn:.85, gf:.55, gt:.45, ft:4 },
+  { pn:.90, pd:.79, gn:.85, gf:.55, gt:.45, ft:3 },
+  { pn:1.0, pd:.87, gn:.95, gf:.60, gt:.50, ft:2 },
+  { pn:.90, pd:.79, gn:.95, gf:.00, gt:.50, ft:0 },
+];
+function getSpd() { return SPEED_TABLE[Math.min(level - 1, SPEED_TABLE.length - 1)]; }
+function inTunnel(x) { return x <= 5 || x >= COLS - 6; }
 
 const GHOST_COLORS = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb852'];
 const SCATTER_TARGETS = [
@@ -715,7 +728,7 @@ function buildGrid() {
       else grid[r][c] = EMPTY;
     }
   }
-  wallsDirty = true;
+  wallsDirty = true; dotsDirty = true;
 }
 
 function canMove(x, y, isGhost, allowGate) {
@@ -755,7 +768,7 @@ function createGhost(i) {
 function init() {
   buildGrid();
   dotsEaten = 0; score = 0; lives = 3; level = 1;
-  frightTimer = 0; frightDuration = 6;
+  frightTimer = 0; pacPause = 0;
   pac = createPac();
   ghosts = [0, 1, 2, 3].map(createGhost);
   gameState = 'ready';
@@ -765,7 +778,7 @@ function init() {
 function resetPositions() {
   pac = createPac();
   ghosts = [0, 1, 2, 3].map(createGhost);
-  frightTimer = 0;
+  frightTimer = 0; pacPause = 0;
 }
 
 function updateHud() {
@@ -809,14 +822,17 @@ function update(dt) {
   if (gameState !== 'playing') return;
   mouthAngle = (Math.sin(performance.now() * 0.012) * 0.5 + 0.5) * 0.4;
   if (frightTimer > 0) { frightTimer -= dt; if (frightTimer <= 0) { frightTimer = 0; for (const g of ghosts) g.frightened = false; } }
-  updatePac(dt);
+  if (pacPause > 0) { pacPause -= dt; if (pacPause < 0) pacPause = 0; } else updatePac(dt);
   for (const g of ghosts) { g.scatterTimer += dt; updateGhost(g, dt); }
   checkCollisions();
   updateHud();
 }
 
 function updatePac(dt) {
-  let rem = dt * PAC_TILES_PER_SEC;
+  const spd = getSpd();
+  const nx = wrapX(pac.x + pac.dx), ny = pac.y + pac.dy;
+  const eatNext = ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS && (grid[ny][nx] === DOT || grid[ny][nx] === POWER);
+  let rem = dt * BASE_TPS * (eatNext ? spd.pd : spd.pn);
   while (rem > 0.001) {
     if (!pac.moving) {
       if (canMove(wrapX(pac.x + pac.nextDx), pac.y + pac.nextDy, false, false)) { pac.dx = pac.nextDx; pac.dy = pac.nextDy; }
@@ -830,19 +846,26 @@ function updatePac(dt) {
       pac.x = wrapX(pac.x + pac.dx); pac.y += pac.dy;
       pac.vx = pac.x; pac.vy = pac.y; pac.moving = false; pac.progress = 0;
       const cell = grid[pac.y][pac.x];
-      if (cell === DOT) { grid[pac.y][pac.x] = EMPTY; score += 10; dotsEaten++; }
-      else if (cell === POWER) {
-        grid[pac.y][pac.x] = EMPTY; score += 50; dotsEaten++; frightTimer = frightDuration;
-        for (const g of ghosts) { if (g.mode !== 'home' && !g.eaten) { g.frightened = true; g.dx = -g.dx; g.dy = -g.dy; } }
+      if (cell === DOT) {
+        grid[pac.y][pac.x] = EMPTY; score += 10; dotsEaten++;
+        dotCtx.clearRect(pac.x * T, pac.y * T, T, T);
+        pacPause = 1 / 60; break;
+      } else if (cell === POWER) {
+        grid[pac.y][pac.x] = EMPTY; score += 50; dotsEaten++;
+        dotCtx.clearRect(pac.x * T, pac.y * T, T, T);
+        pacPause = 3 / 60;
+        if (spd.ft > 0) { frightTimer = spd.ft; for (const g of ghosts) { if (g.mode !== 'home' && !g.eaten) { g.frightened = true; g.dx = -g.dx; g.dy = -g.dy; } } }
+        break;
       }
-      if (dotsEaten >= totalDots) { level++; buildGrid(); dotsEaten = 0; frightDuration = Math.max(2, frightDuration - 0.5); resetPositions(); gameState = 'ready'; return; }
+      if (dotsEaten >= totalDots) { level++; buildGrid(); dotsEaten = 0; resetPositions(); gameState = 'ready'; return; }
     }
   }
 }
 
 function updateGhost(g, dt) {
   if (g.mode === 'home') { g.homeTimer -= dt; if (g.homeTimer <= 0) { g.x = 14; g.y = 11; g.vx = 14; g.vy = 11; g.mode = 'scatter'; g.dy = -1; g.dx = 0; g.moving = false; g.progress = 0; } return; }
-  const speed = g.eaten ? GHOST_EATEN_TPS : (g.frightened ? GHOST_FRIGHT_TPS : (GHOST_TILES_PER_SEC + Math.min(level - 1, 4) * 0.5));
+  const spd = getSpd();
+  const speed = g.eaten ? GHOST_EATEN_TPS : BASE_TPS * (g.frightened ? (spd.gf || spd.gn) : (inTunnel(g.x) ? spd.gt : spd.gn));
   let rem = dt * speed;
   while (rem > 0.001) {
     if (!g.moving) {
@@ -889,16 +912,26 @@ function renderWalls() {
   wallsDirty = false;
 }
 
-function drawDots(time) {
+function renderDots() {
+  dotCtx.clearRect(0, 0, dotCanvas.width, dotCanvas.height);
+  dotCtx.fillStyle = '#ffb8ae';
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    const x = c*T+T/2, y = r*T+T/2;
-    if (grid[r][c] === DOT) { ctx.fillStyle = '#ffb8ae'; ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2); ctx.fill(); }
-    else if (grid[r][c] === POWER) { ctx.fillStyle = `rgba(255,184,174,${Math.sin(time*0.005)*0.3+0.7})`; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill(); }
+    if (grid[r][c] === DOT) { dotCtx.beginPath(); dotCtx.arc(c * T + T / 2, r * T + T / 2, 2, 0, Math.PI * 2); dotCtx.fill(); }
   }
+  dotsDirty = false;
+}
+
+function drawPowerPellets(time) {
+  ctx.globalAlpha = Math.sin(time * 0.005) * 0.3 + 0.7;
+  ctx.fillStyle = '#ffb8ae';
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (grid[r][c] === POWER) { ctx.beginPath(); ctx.arc(c * T + T / 2, r * T + T / 2, 5, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawPac() {
-  const x = pac.vx*T+T/2, y = pac.vy*T+T/2;
+  const x = (pac.vx*T+T/2)|0, y = (pac.vy*T+T/2)|0;
   let angle = 0;
   if (pac.dx===1) angle=0; else if (pac.dx===-1) angle=Math.PI;
   else if (pac.dy===-1) angle=-Math.PI/2; else if (pac.dy===1) angle=Math.PI/2;
@@ -908,7 +941,7 @@ function drawPac() {
 }
 
 function drawGhost(g, time) {
-  const x = g.vx*T+T/2, y = g.vy*T+T/2, r = T/2-1;
+  const x = (g.vx*T+T/2)|0, y = (g.vy*T+T/2)|0, r = T/2-1;
   if (g.eaten) {
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x-3,y-2,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x+3,y-2,2,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#00f'; ctx.beginPath(); ctx.arc(x-3,y-2,1,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x+3,y-2,1,0,Math.PI*2); ctx.fill();
@@ -934,8 +967,10 @@ function drawGhost(g, time) {
 function draw(time) {
   ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
   if (wallsDirty) renderWalls();
+  if (dotsDirty) renderDots();
   ctx.drawImage(wallCanvas, 0, 0);
-  drawDots(time);
+  ctx.drawImage(dotCanvas, 0, 0);
+  drawPowerPellets(time);
   if (gameState==='playing'||gameState==='ready') { drawPac(); for (const g of ghosts) drawGhost(g, time); }
   ctx.textAlign='center'; ctx.font='14px "Press Start 2P", monospace';
   if (gameState==='ready') { ctx.fillStyle='#ffff00'; ctx.fillText('READY!', canvas.width/2, 17*T+T/2); }
