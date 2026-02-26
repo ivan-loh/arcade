@@ -389,8 +389,8 @@
     width: 140px;
     height: 140px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.25);
     position: relative;
     margin: 0 auto;
     -webkit-tap-highlight-color: transparent;
@@ -401,8 +401,8 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-    border: 2px solid rgba(255,255,255,0.2);
+    background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.35), rgba(255,255,255,0.15));
+    border: 2px solid rgba(255,255,255,0.4);
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -410,8 +410,8 @@
     will-change: transform;
   }
   .joy-knob.active {
-    background: radial-gradient(circle at 40% 35%, rgba(255,255,0,0.3), rgba(255,255,0,0.1));
-    border-color: rgba(255,255,0,0.5);
+    background: radial-gradient(circle at 40% 35%, rgba(255,255,0,0.5), rgba(255,255,0,0.2));
+    border-color: rgba(255,255,0,0.7);
   }
 
   .joy-arrows {
@@ -423,14 +423,14 @@
     position: absolute;
     width: 16px;
     height: 16px;
-    fill: rgba(255,255,255,0.12);
+    fill: rgba(255,255,255,0.3);
     transition: fill 0.1s;
   }
   .joy-arrow-up    { top: 8px; left: 50%; transform: translateX(-50%); }
   .joy-arrow-down  { bottom: 8px; left: 50%; transform: translateX(-50%); }
   .joy-arrow-left  { left: 8px; top: 50%; transform: translateY(-50%); }
   .joy-arrow-right { right: 8px; top: 50%; transform: translateY(-50%); }
-  .joy-arrow.lit { fill: rgba(255,255,0,0.6); }
+  .joy-arrow.lit { fill: rgba(255,255,0,0.8); }
 
   @media (pointer: coarse) {
     .mobile-layout {
@@ -502,8 +502,8 @@
       bottom: auto; left: auto; right: auto;
       transform: none;
       width: auto;
-      height: auto;
-      margin: 12px auto 16px;
+      min-height: 160px;
+      margin: 8px auto 12px;
       flex-shrink: 0;
     }
   }
